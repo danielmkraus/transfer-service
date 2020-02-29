@@ -19,25 +19,22 @@ public class TransferService {
 
     public void transfer(TransferRequest transferRequest) {
         transferRequest.validate();
-        var lock = lockService.lockForWrite(transferRequest);
-        try {
+        lockService.lockForWrite(transferRequest, () -> {
             var from = repository.getById(transferRequest.getFromAccountId());
             var to = repository.getById(transferRequest.getToAccountId());
             transfer(transferRequest.getAmount(), from, to);
-        } finally {
-            lock.unlock();
-        }
+        });
     }
 
     private void transfer(BigDecimal transferAmount, Account from, Account to) {
-        validate(transferAmount, from, to);
+        validate(transferAmount, from);
         from.subtractBalance(transferAmount);
         to.addBalance(transferAmount);
         repository.save(from);
         repository.save(to);
     }
 
-    private void validate(BigDecimal transferAmount, Account from, Account to) {
+    private void validate(BigDecimal transferAmount, Account from) {
         validateTransferAmountAvailable(transferAmount, from);
     }
 

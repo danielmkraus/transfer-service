@@ -1,15 +1,12 @@
 package org.danielmkraus.transfer.service;
 
 import org.danielmkraus.transfer.domain.Account;
-import org.danielmkraus.transfer.domain.TransferRequest;
 import org.danielmkraus.transfer.exception.InsufficientFundsException;
 import org.danielmkraus.transfer.repository.AccountRepository;
-import org.danielmkraus.transfer.service.AccountLockService.AccountLock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -21,7 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.danielmkraus.transfer.TransferTests.UNIT_TEST;
 import static org.danielmkraus.transfer.domain.TransferRequest.aTransfer;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,13 +31,6 @@ class TransferServiceTest {
     @Mock
     private AccountRepository repository;
 
-    @Mock
-    private AccountLockService lockService;
-
-    @Mock
-    private AccountLock lock;
-
-    @InjectMocks
     private TransferService service;
 
     @BeforeEach
@@ -51,8 +40,7 @@ class TransferServiceTest {
         when(repository.getById(TO))
                 .thenReturn(new Account(TO, TEN));
 
-        when(lockService.lockForWrite(any(TransferRequest.class)))
-                .thenReturn(lock);
+        service = new TransferService(repository, new AccountLockService(500));
     }
 
     @Test
@@ -68,16 +56,16 @@ class TransferServiceTest {
     }
 
     @Test
-    void fail_to_transfer_more_than_account_balance(){
+    void fail_to_transfer_more_than_account_balance() {
         BigDecimal amountGreaterThanSourceAccount = new BigDecimal("10.01");
         assertThat(amountGreaterThanSourceAccount).isGreaterThan(balanceOf(FROM));
 
-        assertThatThrownBy(()->service.transfer(
+        assertThatThrownBy(() -> service.transfer(
                 aTransfer()
                         .from(FROM)
                         .to(TO)
                         .ofAmount(amountGreaterThanSourceAccount)))
-            .isInstanceOf(InsufficientFundsException.class);
+                .isInstanceOf(InsufficientFundsException.class);
 
         assertThatAccountBalancesWasNotChanged();
     }
@@ -87,7 +75,7 @@ class TransferServiceTest {
         assertThat(balanceOf(TO)).isEqualTo(TEN);
     }
 
-    private BigDecimal balanceOf(String accountId){
+    private BigDecimal balanceOf(String accountId) {
         return repository.getById(accountId).getBalance();
     }
 }

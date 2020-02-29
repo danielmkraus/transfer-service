@@ -2,18 +2,13 @@ package org.danielmkraus.transfer.service;
 
 import org.danielmkraus.transfer.domain.TransferRequest;
 import org.danielmkraus.transfer.exception.AccountLockException;
-import org.danielmkraus.transfer.service.AccountLockService.AccountLock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 import static java.math.BigDecimal.TEN;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.danielmkraus.transfer.TransferTests.*;
 
@@ -34,76 +29,69 @@ class AccountLockServiceTest {
     void setup() {
         firstThreadExecutor = Executors.newSingleThreadExecutor();
         secondThreadExecutor = Executors.newSingleThreadExecutor();
-        accountLockService = new AccountLockService(1);
+        accountLockService = new AccountLockService(50);
     }
 
     @Test
     void acquire_read_lock() throws ExecutionException, InterruptedException {
-        var lock = firstThread(this::lockSampleTransferRequest);
-        assertThat(lock).isNotNull();
-        firstThreadUnlocks(lock);
+        firstThread(() -> accountLockService.lockForRead(AN_ACCOUNT_ID, this::dummySupplier)).get();
     }
 
     @Test
     void acquire_read_lock_from_multiple_threads_for_read_and_fail_when_try_to_acquire_write_lock()
-            throws ExecutionException, InterruptedException {
-        var lock = firstThread(this::lockAnAccountForRead);
-        var secondLock = secondThread(this::lockAnAccountForRead);
+            throws InterruptedException {
+        Semaphore semaphore = new Semaphore(1);
+        semaphore.acquire();
+        firstThread(() -> accountLockService.lockForRead(AN_ACCOUNT_ID, () -> acquireLockAndReturn(semaphore)));
+        firstThread(() -> accountLockService.lockForRead(AN_ACCOUNT_ID, this::dummySupplier));
 
-        assertThatThrownAccountLockException(firstThreadExecutor, this::lockSampleTransferRequest);
-        firstThreadUnlocks(lock);
-        assertThatThrownAccountLockException(firstThreadExecutor, this::lockSampleTransferRequest);
-        secondThreadUnlocks(secondLock);
-        assertThat(firstThread(this::lockSampleTransferRequest));
+        assertThatThrownAccountLockException(secondThreadExecutor, System.out::println);
     }
 
     @Test
-    void fail_to_acquire_lock_if_from_account_is_locked() throws ExecutionException, InterruptedException {
-        var lock = firstThread(this::lockAnAccountForRead);
-        assertThatThrownAccountLockException(firstThreadExecutor, this::lockSampleTransferRequest);
-        firstThreadUnlocks(lock);
-        assertThat(firstThread(this::lockSampleTransferRequest)).isNotNull();
+    void fail_to_acquire_lock_if_from_account_is_locked() throws InterruptedException {
+        Semaphore semaphore = new Semaphore(1);
+        semaphore.acquire();
+        firstThread(() -> accountLockService.lockForWrite(AN_ACCOUNT_ID, () -> acquireLock(semaphore)));
+        assertThatThrownAccountLockException(secondThreadExecutor, System.out::println);
     }
 
     @Test
-    void fail_to_acquire_lock_if_to_account_is_locked() throws ExecutionException, InterruptedException {
-        var lock = firstThread(this::lockAnotherAccountForRead);
-        assertThatThrownAccountLockException(firstThreadExecutor, this::lockSampleTransferRequest);
-        firstThreadUnlocks(lock);
-        firstThread(this::lockSampleTransferRequest);
+    void fail_to_acquire_lock_if_to_account_is_locked() throws InterruptedException {
+        Semaphore semaphore = new Semaphore(1);
+        semaphore.acquire();
+        firstThread(() -> accountLockService.lockForWrite(ANOTHER_ACCOUNT_ID, () -> acquireLock(semaphore)));
+        assertThatThrownAccountLockException(secondThreadExecutor, System.out::println);
     }
 
-    private AccountLock lockSampleTransferRequest() {
-        return accountLockService.lockForWrite(SAMPLE_TRANSFER_REQUEST);
+    private <X> Future<X> firstThread(Callable<X> callable) {
+        return firstThreadExecutor.submit(callable);
     }
 
-    private AccountLock lockAnAccountForRead() {
-        return accountLockService.lockForRead(AN_ACCOUNT_ID);
+    private Future<?> firstThread(Runnable runnable) {
+        return firstThreadExecutor.submit(runnable);
     }
 
-    private AccountLock lockAnotherAccountForRead() {
-        return accountLockService.lockForRead(ANOTHER_ACCOUNT_ID);
-    }
-
-    private <X> X firstThread(Callable<X> producer) throws ExecutionException, InterruptedException {
-        return firstThreadExecutor.submit(producer).get();
-    }
-
-    private <X> X secondThread(Callable<X> producer) throws ExecutionException, InterruptedException {
-        return secondThreadExecutor.submit(producer).get();
-    }
-
-    private void firstThreadUnlocks(AccountLock lock) throws ExecutionException, InterruptedException {
-        firstThreadExecutor.submit(lock::unlock).get();
-    }
-
-    private void secondThreadUnlocks(AccountLock lock) throws ExecutionException, InterruptedException {
-        secondThreadExecutor.submit(lock::unlock).get();
-    }
-
-    private static void assertThatThrownAccountLockException(ExecutorService executorService, Runnable lockExecution) {
-        assertThatThrownBy(() -> executorService.submit(lockExecution).get())
+    private void assertThatThrownAccountLockException(ExecutorService executorService, Runnable lockExecution) {
+        assertThatThrownBy(() -> executorService.submit(() -> accountLockService.lockForWrite(SAMPLE_TRANSFER_REQUEST, lockExecution)).get())
                 .isInstanceOf(ExecutionException.class)
                 .hasCauseInstanceOf(AccountLockException.class);
+    }
+
+    private Void dummySupplier() {
+        return null;
+    }
+
+    private Integer acquireLockAndReturn(Semaphore semaphore) {
+        acquireLock(semaphore);
+        return 1;
+    }
+
+    private void acquireLock(Semaphore semaphore) {
+        try {
+            semaphore.acquire();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }

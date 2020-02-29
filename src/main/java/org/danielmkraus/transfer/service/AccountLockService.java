@@ -5,12 +5,14 @@ import org.danielmkraus.transfer.exception.AccountLockException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
-import java.util.stream.Stream;
+import java.util.function.Supplier;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -24,45 +26,37 @@ public class AccountLockService {
         locks = Collections.synchronizedMap(new WeakHashMap<>());
     }
 
-    AccountLock lockForWrite(TransferRequest transferRequest){
-        var fromAccountLock = tryLock(ReadWriteLock::writeLock, transferRequest.getFromAccountId());
-        try {
-            var toAccountLock = tryLock(ReadWriteLock::writeLock, transferRequest.getToAccountId());
-            return new AccountLock(fromAccountLock, toAccountLock);
-        } catch (AccountLockException e){
-            fromAccountLock.unlock();
-            throw new AccountLockException(e);
-        }
+    void lockForWrite(String accountId, Runnable runnable) {
+        tryLock(ReadWriteLock::writeLock, accountId, supplierAdapter(runnable));
     }
 
-    AccountLock lockForWrite(String accountId){
-        return new AccountLock(tryLock(ReadWriteLock::writeLock, accountId));
+    <X> X lockForRead(String accountId, Supplier<X> supplier) {
+        return tryLock(ReadWriteLock::readLock, accountId, supplier);
     }
 
-    AccountLock lockForRead(String accountId){
-        return new AccountLock(tryLock(ReadWriteLock::readLock, accountId));
-    }
-
-    private Lock tryLock(Function<ReadWriteLock, Lock> lockFunction, String accountId) {
+    private <X> X tryLock(Function<ReadWriteLock, Lock> lockFunction,
+                          String accountId,
+                          Supplier<X> supplier) {
         LOG.debug("Trying to lockForRead account {}", accountId);
-        var lock = getAccountLock(accountId);
+        var lock = locks.computeIfAbsent(accountId, this::createLock);
         try {
             var lockResource = lockFunction.apply(lock);
             var lockAcquired = lockResource.tryLock(lockTimeoutMilliseconds, MILLISECONDS);
-            if(lockAcquired){
-                LOG.debug("locked account {} for {}", accountId, lockResource);
-                return lockResource;
+            if (!lockAcquired) {
+                LOG.debug("failed to lockForRead account {} for {}", accountId, lockResource);
+                throw new AccountLockException();
             }
-            LOG.debug("failed to lockForRead account {} for {}", accountId, lockResource);
-            throw new AccountLockException();
+            try {
+                LOG.debug("locked account {} for {}", accountId, lockResource);
+                return supplier.get();
+            } finally {
+                LOG.debug("unlocked account {} for {}", accountId, lockResource);
+                lockResource.unlock();
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new AccountLockException(e);
         }
-    }
-
-    private ReentrantReadWriteLock getAccountLock(String accountId){
-        return locks.computeIfAbsent(accountId, this::createLock);
     }
 
     private ReentrantReadWriteLock createLock(String accountId) {
@@ -70,17 +64,16 @@ public class AccountLockService {
         return new ReentrantReadWriteLock();
     }
 
-    static class AccountLock {
-        private final Stream<Lock> locks;
-
-        private AccountLock(Lock... locks){
-            this.locks = Stream.of(locks);
-        }
-
-        void unlock(){
-            LOG.debug("Unlocking {}", locks);
-            locks.forEach(Lock::unlock);
-        }
+    void lockForWrite(TransferRequest transferRequest, Runnable consumer) {
+        lockForWrite(transferRequest.getFromAccountId(),
+                () -> lockForWrite(transferRequest.getToAccountId(), consumer)
+        );
     }
 
+    private Supplier<Void> supplierAdapter(Runnable runnable) {
+        return () -> {
+            runnable.run();
+            return null;
+        };
+    }
 }

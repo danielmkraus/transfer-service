@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.util.Objects;
 import java.util.Properties;
 
-public class ServerProperties {
+public final class ServerProperties {
     private static final Properties SERVER_PROPERTIES = new Properties();
 
     public static final String SERVER_PORT = "server.port";
@@ -31,5 +31,8 @@ public class ServerProperties {
         } catch (IOException e) {
             throw new IllegalStateException("Fail to load application.properties");
         }
+    }
+
+    private ServerProperties(){
     }
 }

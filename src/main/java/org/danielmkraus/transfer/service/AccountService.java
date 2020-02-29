@@ -17,15 +17,6 @@ public class AccountService {
         this.lockService = lockService;
     }
 
-    public Account get(String accountId) {
-        var lock = lockService.lockForRead(accountId);
-        try {
-            return repository.getById(accountId);
-        } finally {
-            lock.unlock();
-        }
-    }
-
     public void register(String accountId) {
         if (repository.findById(accountId).isPresent()) {
             throw new AccountAlreadyRegisteredException();
@@ -33,12 +24,13 @@ public class AccountService {
         set(accountId, ZERO);
     }
 
+    public Account get(String accountId) {
+        return lockService.lockForRead(accountId,
+                ()-> repository.getById(accountId));
+    }
+
     public void set(String accountId, BigDecimal balance) {
-        var lock = lockService.lockForWrite(accountId);
-        try {
-            repository.save(new Account(accountId, balance));
-        } finally {
-            lock.unlock();
-        }
+        lockService.lockForWrite(accountId,
+                ()-> repository.save(new Account(accountId, balance)));
     }
 }
