@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.com/danielmkraus/transfer-service.svg?branch=master)](https://travis-ci.com/danielmkraus/transfer-service)
+
+
 # Transfer Service
 
 ## Objective
