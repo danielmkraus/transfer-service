@@ -12,7 +12,7 @@ public class Account {
         this.balance = balance;
     }
 
-    public boolean isBalanceLessThan(BigDecimal amount){
+    public boolean isBalanceLessThan(BigDecimal amount) {
         return amount.compareTo(balance) > 0;
     }
 

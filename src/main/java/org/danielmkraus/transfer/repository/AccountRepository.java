@@ -25,7 +25,7 @@ public class AccountRepository {
                 .orElseThrow(AccountNotFoundException::new);
     }
 
-    public void save(Account account){
+    public void save(Account account) {
         accounts.put(account.getId(), account);
     }
 }

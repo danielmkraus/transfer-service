@@ -13,7 +13,8 @@ public class TransferRequest {
     private String toAccountId;
     private BigDecimal amount;
 
-    TransferRequest(){}
+    TransferRequest() {
+    }
 
     private TransferRequest(String fromAccountId, String toAccountId, BigDecimal amount) {
         this.fromAccountId = fromAccountId;

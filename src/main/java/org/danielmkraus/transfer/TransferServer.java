@@ -5,10 +5,6 @@ import org.jboss.resteasy.core.ResteasyDeploymentImpl;
 import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
 import org.jboss.resteasy.spi.ResteasyDeployment;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Objects;
-
 import static org.danielmkraus.transfer.ServerProperties.*;
 
 public class TransferServer {
