@@ -30,7 +30,7 @@ class AccountLockServiceTest {
     void setup() {
         firstThreadExecutor = Executors.newSingleThreadExecutor();
         secondThreadExecutor = Executors.newSingleThreadExecutor();
-        accountLockService = new AccountLockService(50);
+        accountLockService = new AccountLockService(500);
     }
 
     @Test
