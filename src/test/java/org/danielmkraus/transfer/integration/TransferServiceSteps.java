@@ -33,7 +33,7 @@ public class TransferServiceSteps {
 
     @After
     public void tearDown() {
-        server.close();
+        server.stop();
     }
 
     @Given("an account {string} with a balance of {double}")

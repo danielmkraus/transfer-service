@@ -27,7 +27,7 @@ public class TransferServiceRestClient {
                 .uri(URI.create(serverUrl + ACCOUNTS_ENDPOINT +
                         accountId + "?balance=" + balance))
                 .build();
-        return execute(()->httpClient.send(request, HttpResponse.BodyHandlers.ofString()));
+        return execute(() -> httpClient.send(request, HttpResponse.BodyHandlers.ofString()));
     }
 
     public HttpResponse<String> getAccount(String accountId) {
@@ -35,7 +35,7 @@ public class TransferServiceRestClient {
                 .GET()
                 .uri(URI.create(serverUrl + ACCOUNTS_ENDPOINT + accountId))
                 .build();
-        return execute(()->httpClient.send(request, HttpResponse.BodyHandlers.ofString()));
+        return execute(() -> httpClient.send(request, HttpResponse.BodyHandlers.ofString()));
     }
 
     public HttpResponse<String> createAccount(String accountId) {
@@ -43,7 +43,7 @@ public class TransferServiceRestClient {
                 .POST(HttpRequest.BodyPublishers.noBody())
                 .uri(URI.create(serverUrl + ACCOUNTS_ENDPOINT + accountId))
                 .build();
-        return execute( ()->httpClient.send(request, HttpResponse.BodyHandlers.ofString()));
+        return execute(() -> httpClient.send(request, HttpResponse.BodyHandlers.ofString()));
     }
 
     public HttpResponse<String> transfer(String from, String to, BigDecimal amount) {
@@ -54,10 +54,10 @@ public class TransferServiceRestClient {
                 .uri(URI.create(serverUrl + TRANSFERS_ENDPOINT))
                 .header("Content-Type", MediaType.APPLICATION_JSON)
                 .build();
-        return execute(()-> httpClient.send(request, HttpResponse.BodyHandlers.ofString()));
+        return execute(() -> httpClient.send(request, HttpResponse.BodyHandlers.ofString()));
     }
 
-    <X> X execute(Callable<X> call){
+    <X> X execute(Callable<X> call) {
         try {
             return call.call();
         } catch (Exception e) {

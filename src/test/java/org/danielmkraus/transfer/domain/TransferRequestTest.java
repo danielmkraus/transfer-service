@@ -18,7 +18,7 @@ import static org.danielmkraus.transfer.domain.TransferRequest.aTransfer;
 class TransferRequestTest {
 
     @Test
-    void creates_transfer_request(){
+    void creates_transfer_request() {
         var transfer = aTransfer()
                 .from(AN_ACCOUNT_ID)
                 .to(ANOTHER_ACCOUNT_ID)
@@ -30,8 +30,8 @@ class TransferRequestTest {
     }
 
     @Test
-    void fail_to_transfer_to_same_account(){
-        assertThatThrownBy(()->
+    void fail_to_transfer_to_same_account() {
+        assertThatThrownBy(() ->
                 aTransfer()
                         .from(AN_ACCOUNT_ID)
                         .to(AN_ACCOUNT_ID)
@@ -41,10 +41,10 @@ class TransferRequestTest {
     }
 
     @Test
-    void fail_to_transfer_negative_amount(){
+    void fail_to_transfer_negative_amount() {
         BigDecimal negativeAmount = new BigDecimal("-0.01");
 
-        assertThatThrownBy(()->
+        assertThatThrownBy(() ->
                 aTransfer()
                         .from(AN_ACCOUNT_ID)
                         .to(ANOTHER_ACCOUNT_ID)
@@ -54,8 +54,8 @@ class TransferRequestTest {
     }
 
     @Test
-    void fail_to_transfer_zero(){
-        assertThatThrownBy(()->
+    void fail_to_transfer_zero() {
+        assertThatThrownBy(() ->
                 aTransfer()
                         .from(AN_ACCOUNT_ID)
                         .to(ANOTHER_ACCOUNT_ID)

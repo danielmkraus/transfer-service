@@ -27,7 +27,7 @@ public class AccountService {
     }
 
     public void register(String accountId) {
-        if(repository.findById(accountId).isPresent()){
+        if (repository.findById(accountId).isPresent()) {
             throw new AccountAlreadyRegisteredException();
         }
         set(accountId, ZERO);

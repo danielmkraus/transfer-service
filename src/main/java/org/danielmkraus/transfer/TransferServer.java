@@ -11,24 +11,11 @@ import java.util.Objects;
 
 import static org.danielmkraus.transfer.ServerProperties.*;
 
-public class TransferServer implements AutoCloseable {
+public class TransferServer {
     private final UndertowJaxrsServer server;
 
     public static void main(String[] args) {
         startServer();
-    }
-
-    private static void loadServerProperties() {
-        try {
-            InputStream serverPropertiesFile =
-                    TransferServer.class
-                            .getClassLoader()
-                            .getResourceAsStream("./application.properties");
-            Objects.requireNonNull(serverPropertiesFile);
-            SERVER_PROPERTIES.load(serverPropertiesFile);
-        } catch (IOException e) {
-            throw new IllegalStateException("Fail to load application.properties");
-        }
     }
 
     public static TransferServer startServer() {
@@ -55,8 +42,7 @@ public class TransferServer implements AutoCloseable {
                 .setDeploymentName("TransferService"));
     }
 
-    @Override
-    public void close() {
+    public void stop() {
         server.stop();
     }
 }

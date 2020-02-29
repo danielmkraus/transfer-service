@@ -29,7 +29,7 @@ public class TransferApplication extends Application {
                 new AccountService(repository, lockService));
     }
 
-    private TransferController createTransferController(AccountRepository repository, AccountLockService lockService){
+    private TransferController createTransferController(AccountRepository repository, AccountLockService lockService) {
         return new TransferController(
                 new TransferService(repository, lockService));
     }
