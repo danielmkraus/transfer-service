@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.util.concurrent.*;
 
 import static java.math.BigDecimal.TEN;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.danielmkraus.transfer.TransferTests.*;
 
@@ -34,7 +35,11 @@ class AccountLockServiceTest {
 
     @Test
     void acquire_read_lock() throws ExecutionException, InterruptedException {
-        firstThread(() -> accountLockService.lockForRead(AN_ACCOUNT_ID, this::dummySupplier)).get();
+        assertThat(
+                firstThread(() -> accountLockService.lockForRead(
+                        AN_ACCOUNT_ID,
+                        this::dummySupplier)).get())
+                .isNull();
     }
 
     @Test
