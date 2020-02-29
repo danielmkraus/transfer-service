@@ -14,6 +14,8 @@ import java.math.BigDecimal;
 import java.net.http.HttpResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.danielmkraus.transfer.ServerProperties.SERVER_PORT;
+import static org.danielmkraus.transfer.ServerProperties.stringProperty;
 
 public class TransferServiceSteps {
     private static Gson gson;
@@ -26,7 +28,7 @@ public class TransferServiceSteps {
     public static void setup() {
         gson = new GsonBuilder().create();
         server = TransferServer.startServer();
-        restClient = new TransferServiceRestClient("http://localhost:8080");
+        restClient = new TransferServiceRestClient("http://localhost:" + stringProperty(SERVER_PORT));
     }
 
     @After
