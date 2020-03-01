@@ -23,7 +23,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 @Tag(UNIT_TEST)
 class TransferServiceTest {
-
     private static final String FROM = "from";
     private static final String TO = "to";
     private static final BigDecimal TWENTY = new BigDecimal("20");

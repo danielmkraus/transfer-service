@@ -46,16 +46,17 @@ class AccountLockServiceTest {
     @Test
     void acquire_read_lock_from_multiple_threads_for_read_and_fail_when_try_to_acquire_write_lock()
             throws InterruptedException {
-        Semaphore semaphore = createSemaphore();
+        var semaphore = createSemaphore();
         firstThread(() -> accountLockService.lockForRead(AN_ACCOUNT_ID, () -> acquireLockAndReturn(semaphore)));
         firstThread(() -> accountLockService.lockForRead(AN_ACCOUNT_ID, this::dummySupplier));
+        accountLockService.lockForRead(AN_ACCOUNT_ID, this::dummySupplier);
         waitForSemaphoreBeReached(semaphore);
         assertThatThrownAccountLockException(secondThreadExecutor, System.out::println);
     }
 
     @Test
     void fail_to_acquire_lock_if_from_account_is_locked() throws InterruptedException {
-        Semaphore semaphore = createSemaphore();
+        var semaphore = createSemaphore();
         firstThread(() -> accountLockService.lockForWrite(AN_ACCOUNT_ID, () -> acquireLock(semaphore)));
         waitForSemaphoreBeReached(semaphore);
         assertThatThrownAccountLockException(secondThreadExecutor, System.out::println);
@@ -63,18 +64,20 @@ class AccountLockServiceTest {
 
     @Test
     void fail_to_acquire_lock_if_to_account_is_locked() throws InterruptedException {
-        Semaphore semaphore = createSemaphore();
+        var semaphore = createSemaphore();
         firstThread(() -> accountLockService.lockForWrite(ANOTHER_ACCOUNT_ID, () -> acquireLock(semaphore)));
         waitForSemaphoreBeReached(semaphore);
         assertThatThrownAccountLockException(secondThreadExecutor, System.out::println);
     }
 
     private void waitForSemaphoreBeReached(Semaphore semaphore) {
-        await().atMost(2, TimeUnit.SECONDS).until(()->semaphore.getQueueLength() > 0);
+        await()
+                .atMost(2, TimeUnit.SECONDS)
+                .until(() -> semaphore.getQueueLength() > 0);
     }
 
     private Semaphore createSemaphore() throws InterruptedException {
-        Semaphore semaphore = new Semaphore(1);
+        var semaphore = new Semaphore(1);
         semaphore.acquire();
         return semaphore;
     }

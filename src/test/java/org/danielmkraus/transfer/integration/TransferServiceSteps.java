@@ -36,6 +36,14 @@ public class TransferServiceSteps {
         server.stop();
     }
 
+    @Given("an account {string}")
+    public void an_account(String account) {
+        assertThat(
+                restClient.createAccount(account)
+                        .statusCode())
+                .isEqualTo(204);
+    }
+
     @Given("an account {string} with a balance of {double}")
     public void an_account_with_a_balance_of(String accountId, Double balance) {
         assertThat(
