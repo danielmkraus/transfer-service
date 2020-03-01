@@ -17,7 +17,7 @@ cache:
 
 deploy:
   provider: releases
-  api_key: "6df796e3fd6d1cbfc4c00902bea4dd9bddd2f5f8"
+  api_key: "13460cdfa465b513ee2f1586478c5b12656ad05b"
   file: "./target/transfer-service*.jar"
   skip_cleanup: true
   on:
