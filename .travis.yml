@@ -14,11 +14,3 @@ script:
 cache:
   directories:
     - $HOME/.m2
-
-deploy:
-  provider: releases
-  api_key: "1da16cbcfd9ec82d0d907c1ea81c43801a860ded"
-  file: "./target/transfer-service*.jar"
-  skip_cleanup: true
-  on:
-    tags: true
