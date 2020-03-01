@@ -6,7 +6,7 @@
 
     <groupId>org.danielmkraus</groupId>
     <artifactId>transfer-service</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
@@ -28,7 +28,6 @@
             <artifactId>resteasy-jackson2-provider</artifactId>
             <version>${version.resteasy}</version>
         </dependency>
-
 
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -97,6 +96,18 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>org.danielmkraus.transfer.TransferServer</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
             </plugin>
@@ -112,6 +123,11 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.danielmkraus.transfer.TransferServer</mainClass>
+                        </manifest>
+                    </archive>
                 </configuration>
                 <executions>
                     <execution>
@@ -128,7 +144,6 @@
 
     <profiles>
         <profile>
-            <!-- calculate coverage metrics per test with SonarQube and JaCoCo -->
             <id>coverage-per-test</id>
             <build>
                 <plugins>
