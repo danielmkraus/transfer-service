@@ -3,7 +3,7 @@
 Feature: Transfer between accounts
   Background:
     As a bank user
-    I want to transfer my money to another persons
+    I want to transfer my money to another accounts
     So that will allow to manage finances
 
   @basic
