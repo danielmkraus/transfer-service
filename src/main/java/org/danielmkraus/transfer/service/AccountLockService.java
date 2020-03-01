@@ -26,6 +26,12 @@ public class AccountLockService {
         locks = Collections.synchronizedMap(new WeakHashMap<>());
     }
 
+    void lockForWrite(TransferRequest transferRequest, Runnable consumer) {
+        lockForWrite(transferRequest.getFromAccountId(),
+                () -> lockForWrite(transferRequest.getToAccountId(), consumer)
+        );
+    }
+
     void lockForWrite(String accountId, Runnable runnable) {
         tryLock(ReadWriteLock::writeLock, accountId, supplierAdapter(runnable));
     }
@@ -62,12 +68,6 @@ public class AccountLockService {
     private ReentrantReadWriteLock createLock(String accountId) {
         LOG.debug("Creating a new Lock object for account id {}", accountId);
         return new ReentrantReadWriteLock();
-    }
-
-    void lockForWrite(TransferRequest transferRequest, Runnable consumer) {
-        lockForWrite(transferRequest.getFromAccountId(),
-                () -> lockForWrite(transferRequest.getToAccountId(), consumer)
-        );
     }
 
     private Supplier<Void> supplierAdapter(Runnable runnable) {

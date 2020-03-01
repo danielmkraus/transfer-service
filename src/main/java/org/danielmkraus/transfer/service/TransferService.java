@@ -8,7 +8,6 @@ import org.danielmkraus.transfer.repository.AccountRepository;
 import java.math.BigDecimal;
 
 public class TransferService {
-
     private final AccountRepository repository;
     private final AccountLockService lockService;
 
@@ -27,15 +26,11 @@ public class TransferService {
     }
 
     private void transfer(BigDecimal transferAmount, Account from, Account to) {
-        validate(transferAmount, from);
+        validateTransferAmountAvailable(transferAmount, from);
         from.subtractBalance(transferAmount);
         to.addBalance(transferAmount);
         repository.save(from);
         repository.save(to);
-    }
-
-    private void validate(BigDecimal transferAmount, Account from) {
-        validateTransferAmountAvailable(transferAmount, from);
     }
 
     private void validateTransferAmountAvailable(BigDecimal transferAmount, Account account) {
@@ -43,5 +38,4 @@ public class TransferService {
             throw new InsufficientFundsException();
         }
     }
-
 }

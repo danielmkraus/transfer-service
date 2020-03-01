@@ -9,7 +9,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import static java.util.Optional.ofNullable;
 
 public class AccountRepository {
-
     private final ConcurrentHashMap<String, Account> accounts;
 
     public AccountRepository() {
