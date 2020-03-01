@@ -25,7 +25,7 @@ public final class ServerProperties {
             InputStream serverPropertiesFile =
                     TransferServer.class
                             .getClassLoader()
-                            .getResourceAsStream("./application.properties");
+                            .getResourceAsStream("application.properties");
             Objects.requireNonNull(serverPropertiesFile);
             SERVER_PROPERTIES.load(serverPropertiesFile);
         } catch (IOException e) {
