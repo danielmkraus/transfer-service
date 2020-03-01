@@ -11,6 +11,7 @@ import java.util.concurrent.*;
 import static java.math.BigDecimal.TEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.danielmkraus.transfer.TransferTests.*;
 
 @Tag(UNIT_TEST)
@@ -30,7 +31,7 @@ class AccountLockServiceTest {
     void setup() {
         firstThreadExecutor = Executors.newSingleThreadExecutor();
         secondThreadExecutor = Executors.newSingleThreadExecutor();
-        accountLockService = new AccountLockService(500);
+        accountLockService = new AccountLockService(50);
     }
 
     @Test
@@ -45,28 +46,37 @@ class AccountLockServiceTest {
     @Test
     void acquire_read_lock_from_multiple_threads_for_read_and_fail_when_try_to_acquire_write_lock()
             throws InterruptedException {
-        Semaphore semaphore = new Semaphore(1);
-        semaphore.acquire();
+        Semaphore semaphore = createSemaphore();
         firstThread(() -> accountLockService.lockForRead(AN_ACCOUNT_ID, () -> acquireLockAndReturn(semaphore)));
         firstThread(() -> accountLockService.lockForRead(AN_ACCOUNT_ID, this::dummySupplier));
-
+        waitForSemaphoreBeReached(semaphore);
         assertThatThrownAccountLockException(secondThreadExecutor, System.out::println);
     }
 
     @Test
     void fail_to_acquire_lock_if_from_account_is_locked() throws InterruptedException {
-        Semaphore semaphore = new Semaphore(1);
-        semaphore.acquire();
+        Semaphore semaphore = createSemaphore();
         firstThread(() -> accountLockService.lockForWrite(AN_ACCOUNT_ID, () -> acquireLock(semaphore)));
+        waitForSemaphoreBeReached(semaphore);
         assertThatThrownAccountLockException(secondThreadExecutor, System.out::println);
     }
 
     @Test
     void fail_to_acquire_lock_if_to_account_is_locked() throws InterruptedException {
+        Semaphore semaphore = createSemaphore();
+        firstThread(() -> accountLockService.lockForWrite(ANOTHER_ACCOUNT_ID, () -> acquireLock(semaphore)));
+        waitForSemaphoreBeReached(semaphore);
+        assertThatThrownAccountLockException(secondThreadExecutor, System.out::println);
+    }
+
+    private void waitForSemaphoreBeReached(Semaphore semaphore) {
+        await().atMost(2, TimeUnit.SECONDS).until(()->semaphore.getQueueLength() > 0);
+    }
+
+    private Semaphore createSemaphore() throws InterruptedException {
         Semaphore semaphore = new Semaphore(1);
         semaphore.acquire();
-        firstThread(() -> accountLockService.lockForWrite(ANOTHER_ACCOUNT_ID, () -> acquireLock(semaphore)));
-        assertThatThrownAccountLockException(secondThreadExecutor, System.out::println);
+        return semaphore;
     }
 
     private <X> Future<X> firstThread(Callable<X> callable) {
