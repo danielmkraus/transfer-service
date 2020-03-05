@@ -73,8 +73,8 @@ curl -X POST -v http://localhost:8080/rest/accounts/1
     - request body - json with following format:
          ```
          {
-             "fromAccountId" : "20000"
-             "toAccountId": "10000"
+             "fromAccountId" : "20000",
+             "toAccountId": "10000",
              "amount": "10.12"
          }
          ```
