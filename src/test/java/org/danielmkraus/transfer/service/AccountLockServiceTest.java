@@ -5,9 +5,13 @@ import org.danielmkraus.transfer.exception.AccountLockException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.lang.Thread.State.TIMED_WAITING;
 import static java.math.BigDecimal.TEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -31,7 +35,7 @@ class AccountLockServiceTest {
     void setup() {
         firstThreadExecutor = Executors.newSingleThreadExecutor();
         secondThreadExecutor = Executors.newSingleThreadExecutor();
-        accountLockService = new AccountLockService(50);
+        accountLockService = new AccountLockService(5);
     }
 
     @Test
@@ -68,6 +72,29 @@ class AccountLockServiceTest {
         firstThread(() -> accountLockService.lockForWrite(ANOTHER_ACCOUNT_ID, () -> acquireLock(semaphore)));
         waitForSemaphoreBeReached(semaphore);
         assertThatThrownAccountLockException(secondThreadExecutor, System.out::println);
+    }
+
+    @Test
+    void fail_to_execute_when_thread_is_interrupted() throws InterruptedException {
+        accountLockService = new AccountLockService(Long.MAX_VALUE);
+        var semaphore = createSemaphore();
+        firstThread(() -> accountLockService.lockForWrite(AN_ACCOUNT_ID, () -> acquireLock(semaphore)));
+        waitForSemaphoreBeReached(semaphore);
+
+        Thread secondThread = new Thread(() -> accountLockService.lockForWrite(AN_ACCOUNT_ID, () -> {}));
+
+        AtomicInteger fails = new AtomicInteger();
+        secondThread.setUncaughtExceptionHandler((thread, throwable) -> {
+            fails.incrementAndGet();
+            assertThat(throwable).isInstanceOf(AccountLockException.class);
+        });
+
+        secondThread.start();
+        await().atMost(2, TimeUnit.SECONDS).until(()-> secondThread.getState() == TIMED_WAITING);
+
+        secondThread.interrupt();
+
+        await().atMost(2, TimeUnit.SECONDS).untilAsserted( ()->assertThat(fails).hasValue(1));
     }
 
     private void waitForSemaphoreBeReached(Semaphore semaphore) {

@@ -4,10 +4,13 @@ import org.danielmkraus.transfer.domain.Account;
 import org.danielmkraus.transfer.domain.TransferRequest;
 import org.danielmkraus.transfer.exception.InsufficientFundsException;
 import org.danielmkraus.transfer.repository.AccountRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 
 public class TransferService {
+    private static final Logger LOG = LoggerFactory.getLogger(TransferService.class);
     private final AccountRepository repository;
     private final AccountLockService lockService;
 
@@ -17,6 +20,7 @@ public class TransferService {
     }
 
     public void transfer(TransferRequest transferRequest) {
+        LOG.debug("Processing transfer {}", transferRequest);
         transferRequest.validate();
         lockService.lockForWrite(transferRequest, () -> {
             var from = repository.getById(transferRequest.getFromAccountId());

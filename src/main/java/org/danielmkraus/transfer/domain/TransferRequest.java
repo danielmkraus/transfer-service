@@ -61,9 +61,9 @@ public class TransferRequest {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public final boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if(!(o instanceof TransferRequest)) return false;
         TransferRequest that = (TransferRequest) o;
         return Objects.equals(fromAccountId, that.fromAccountId) &&
                 Objects.equals(toAccountId, that.toAccountId) &&
@@ -71,7 +71,7 @@ public class TransferRequest {
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return Objects.hash(fromAccountId, toAccountId, amount);
     }
 

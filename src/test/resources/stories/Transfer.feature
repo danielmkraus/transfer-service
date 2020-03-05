@@ -6,6 +6,16 @@ Feature: Transfer between accounts
     I want to transfer my money to another accounts
     So that will allow to manage finances
 
+
+  @basic
+  Scenario: Transfer money to an account with negative balance
+    Given an account "1" with a balance of 500.00
+    And an account "2" with a balance of -500.00
+    When transfer 499.99 from "1" to "2"
+    Then successfully transfer
+    And account "1" have balance of 0.01
+    And account "2" have balance of -0.01
+
   @basic
   Scenario: Transfer money between accounts
     Given an account "1" with a balance of 500.00

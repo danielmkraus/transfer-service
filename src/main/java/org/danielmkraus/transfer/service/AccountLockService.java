@@ -43,13 +43,13 @@ public class AccountLockService {
     private <X> X tryLock(Function<ReadWriteLock, Lock> lockFunction,
                           String accountId,
                           Supplier<X> supplier) {
-        LOG.debug("Trying to lockForRead account {}", accountId);
+        LOG.debug("Trying to lock account {}", accountId);
         var lock = locks.computeIfAbsent(accountId, this::createLock);
         try {
             var lockResource = lockFunction.apply(lock);
             var lockAcquired = lockResource.tryLock(lockTimeoutMilliseconds, MILLISECONDS);
             if (!lockAcquired) {
-                LOG.debug("failed to lockForRead account {} for {}", accountId, lockResource);
+                LOG.debug("failed to lock account {} for {}", accountId, lockResource);
                 throw new AccountLockException();
             }
             try {

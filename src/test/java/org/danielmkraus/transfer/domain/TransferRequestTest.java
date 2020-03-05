@@ -1,5 +1,6 @@
 package org.danielmkraus.transfer.domain;
 
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.danielmkraus.transfer.exception.AccountValidationException;
 import org.danielmkraus.transfer.exception.InvalidAmountException;
 import org.junit.jupiter.api.Tag;
@@ -9,6 +10,7 @@ import java.math.BigDecimal;
 
 import static java.math.BigDecimal.TEN;
 import static java.math.BigDecimal.ZERO;
+import static nl.jqno.equalsverifier.Warning.NONFINAL_FIELDS;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.danielmkraus.transfer.TransferTests.*;
@@ -61,5 +63,12 @@ class TransferRequestTest {
                         .to(ANOTHER_ACCOUNT_ID)
                         .ofAmount(ZERO))
                 .isInstanceOf(InvalidAmountException.class);
+    }
+
+    @Test
+    void equalsContract() {
+        EqualsVerifier.forClass(TransferRequest.class)
+                .suppress(NONFINAL_FIELDS)
+                .verify();
     }
 }

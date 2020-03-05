@@ -6,6 +6,9 @@ import org.danielmkraus.transfer.service.AccountService;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.math.BigDecimal;
+import java.util.Optional;
+
+import static java.math.BigDecimal.ZERO;
 
 @Path("accounts/{id}")
 public class AccountController {
@@ -27,7 +30,7 @@ public class AccountController {
     }
 
     @PUT
-    public void set(@PathParam("id") String accountId, @QueryParam("balance") BigDecimal balance) {
-        accountService.set(accountId, balance);
+    public void set(@PathParam("id") String accountId, @QueryParam("balance") Optional<BigDecimal> balance) {
+        accountService.set(accountId, balance.orElse(ZERO));
     }
 }

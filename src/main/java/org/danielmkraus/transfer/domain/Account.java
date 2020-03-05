@@ -3,13 +3,26 @@ package org.danielmkraus.transfer.domain;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+import static java.util.Objects.requireNonNull;
+
 public class Account {
     private String id;
     private BigDecimal balance;
 
+    public static Account newAccount(String id, BigDecimal balance) {
+        Account account = new Account(id, balance);
+        account.validate();
+        return account;
+    }
+
     public Account(String id, BigDecimal balance) {
         this.id = id;
         this.balance = balance;
+    }
+
+    private void validate() {
+        requireNonNull(id);
+        requireNonNull(balance);
     }
 
     public boolean isBalanceLessThan(BigDecimal amount) {
@@ -33,15 +46,15 @@ public class Account {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public final boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof Account)) return false;
         Account account = (Account) o;
         return Objects.equals(id, account.id);
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return Objects.hash(id);
     }
 
