@@ -17,13 +17,13 @@ class AccountRepositoryTest {
     private AccountRepository repository;
 
     @BeforeEach
-    void setup(){
+    void setup() {
         repository = new AccountRepository();
     }
 
 
     @Test
-    void get_by_id(){
+    void get_by_id() {
         repository.save(SAMPLE_ACCOUNT);
 
         assertThat(repository.getById(AN_ACCOUNT_ID))
@@ -33,18 +33,18 @@ class AccountRepositoryTest {
     }
 
     @Test
-    void fail_to_get_by_unregistered_id(){
-        assertThatThrownBy( () -> repository.getById(UNREGISTERED_ID) )
+    void fail_to_get_by_unregistered_id() {
+        assertThatThrownBy(() -> repository.getById(UNREGISTERED_ID))
                 .isInstanceOf(AccountNotFoundException.class);
     }
 
     @Test
-    void not_find_by_unregistered_id(){
+    void not_find_by_unregistered_id() {
         assertThat(repository.findById(UNREGISTERED_ID)).isEmpty();
     }
 
     @Test
-    void find_by_id(){
+    void find_by_id() {
         repository.save(SAMPLE_ACCOUNT);
         assertThat(repository.findById(AN_ACCOUNT_ID))
                 .isNotEmpty().get()

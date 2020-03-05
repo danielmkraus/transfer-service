@@ -19,8 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.danielmkraus.transfer.TransferTests.*;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @Tag(UNIT_TEST)
@@ -34,6 +33,7 @@ class AccountServiceTest {
     void setup() {
         accountService = new AccountService(repository, new AccountLockService(500));
     }
+
 
     @Test
     void fail_when_get_unregistered() {
@@ -73,7 +73,31 @@ class AccountServiceTest {
         verify(repository).save(
                 argThat(arg -> Objects.equals(arg.getId(), SAMPLE_ACCOUNT.getId()) &&
                         Objects.equals(arg.getBalance(), TEN)));
+    }
 
+    @Test
+    void fail_when_set_new_account_with_null_balance() {
+        assertThatThrownBy(() -> accountService.set(SAMPLE_ACCOUNT.getId(), null)).isInstanceOf(NullPointerException.class);
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void fail_when_set_existing_account_with_null_balance() {
+        set_new_account();
+        assertThatThrownBy(() -> accountService.set(SAMPLE_ACCOUNT.getId(), null)).isInstanceOf(NullPointerException.class);
+        verifyNoMoreInteractions(repository);
+    }
+
+    @Test
+    void fail_when_set_new_account_with_null_id() {
+        assertThatThrownBy(() -> accountService.set(null, ZERO)).isInstanceOf(NullPointerException.class);
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void fail_when_set_new_account_with_null_id_and_balance() {
+        assertThatThrownBy(() -> accountService.set(null, null)).isInstanceOf(NullPointerException.class);
+        verifyNoInteractions(repository);
     }
 
     @Test

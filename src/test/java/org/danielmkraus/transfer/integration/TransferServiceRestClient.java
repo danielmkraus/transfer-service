@@ -29,7 +29,7 @@ public class TransferServiceRestClient {
                 .uri(URI.create(serverUrl + ACCOUNTS_ENDPOINT +
                         accountId +
                         ofNullable(balance)
-                                .map(v->"?balance=" + v)
+                                .map(v -> "?balance=" + v)
                                 .orElse("")))
                 .build();
         return execute(() -> httpClient.send(request, HttpResponse.BodyHandlers.ofString()));
