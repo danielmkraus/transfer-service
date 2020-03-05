@@ -59,6 +59,11 @@ public class TransferServiceSteps {
         assertThat(restClient.getAccount(accountId).statusCode()).isEqualTo(404);
     }
 
+    @Given("an account {string} set without balance")
+    public void an_account_set_without_balance(String accountId) {
+        restClient.setBalance(accountId, null);
+    }
+
     @When("transfer {double} from {string} to {string}")
     public void transfer_from_to(Double amount, String from, String to) {
         transferResponse = restClient.transfer(

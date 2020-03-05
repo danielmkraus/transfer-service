@@ -8,6 +8,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.concurrent.Callable;
 
+import static java.util.Optional.ofNullable;
+
 public class TransferServiceRestClient {
     private static final String ACCOUNTS_ENDPOINT = "/rest/accounts/";
     private static final String TRANSFERS_ENDPOINT = "/rest/transfers/";
@@ -25,7 +27,10 @@ public class TransferServiceRestClient {
         var request = HttpRequest.newBuilder()
                 .PUT(HttpRequest.BodyPublishers.noBody())
                 .uri(URI.create(serverUrl + ACCOUNTS_ENDPOINT +
-                        accountId + "?balance=" + balance))
+                        accountId +
+                        ofNullable(balance)
+                                .map(v->"?balance=" + v)
+                                .orElse("")))
                 .build();
         return execute(() -> httpClient.send(request, HttpResponse.BodyHandlers.ofString()));
     }
